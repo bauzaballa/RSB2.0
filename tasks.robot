@@ -10,6 +10,7 @@ Library    RPA.HTTP
 Library    RPA.Excel.Files
 Library    RPA.Tables
 Library    RPA.PDF
+Library    RPA.Archive
 Library    RPA.RobotLogListener
 
 
@@ -17,10 +18,11 @@ Library    RPA.RobotLogListener
 Orders robots from RobotSpareBin Industries Inc
     Open the intranet website
     Download CSV file
-    Fill order forms
-#Store the order receipt as a PDF file
-#    Take a screenshot of the receipt
-#    Store the receipt in a PDF file
+    Fill order forms and recollect recipts
+    Create ZIP with PDF files
+
+***Variables***
+    
 
 *** Keywords ***
 Open the intranet website
@@ -29,7 +31,7 @@ Open the intranet website
 Download CSV file
     Download    https://robotsparebinindustries.com/orders.csv    overwrite=True
 
-Fill order forms
+Fill order forms and recollect recipts
     ${dataTable}=    Read table from CSV    orders.csv    header=True
     FOR    ${data}    IN    @{dataTable}
         Fill and submit one form    ${data}
@@ -39,7 +41,6 @@ Fill and submit one form
     Click Button    OK
     [Arguments]    ${dataTable}
     Select From List By Value    head    ${dataTable}[Head]
-    #${bodyValue}    Set Variable    ${dataTable}[Body]    forma de crear una variable
     Click Element    xpath://input[@type='radio' and @value=${dataTable}[Body]]
     Input Text    css=.form-control    ${dataTable}[Legs]
     Input Text    address    ${dataTable}[Address]
@@ -67,13 +68,13 @@ Store the receipt in a PDF file
     [Arguments]    ${dataTable}
     Wait Until Element Is Visible    id:receipt
     ${receipt}=    Get Element Attribute    id:receipt    outerHTML
-    Html To Pdf    ${receipt}    ${OUTPUT_DIR}${/}robot_receipts${/}${dataTable}[Order number].pdf
+    Html To Pdf    ${receipt}    ${OUTPUT_DIR}${/}${dataTable}[Order number].pdf
 
 Store the robot preview in the recipt PDF
     [Arguments]    ${dataTable}
-    #${pngToAdd}=    Create List    ${OUTPUT_DIR}${/}robot_previews${/}${dataTable}[Order number].png
-    Open Pdf    ${OUTPUT_DIR}${/}robot_receipts${/}${dataTable}[Order number].pdf
-    Add Watermark Image To Pdf    ${OUTPUT_DIR}${/}robot_previews${/}${dataTable}[Order number].png    ${OUTPUT_DIR}${/}robot_receipts${/}${dataTable}[Order number].pdf
-    #Add Files To Pdf    ${pngToAdd}    ${OUTPUT_DIR}${/}robot_receipts${/}${dataTable}[Order number].pdf
-    #Save Pdf    ${OUTPUT_DIR}/robot_receipts${dataTable}[Order number].pdf    overwrite
+    Open Pdf    ${OUTPUT_DIR}${/}${dataTable}[Order number].pdf
+    Add Watermark Image To Pdf    ${OUTPUT_DIR}${/}robot_previews${/}${dataTable}[Order number].png    ${OUTPUT_DIR}${/}${dataTable}[Order number].pdf
     Close Pdf
+
+Create ZIP with PDF files
+    Archive Folder With Zip    ${OUTPUT_DIR}    ${OUTPUT_DIR}${/}recipts.zip
