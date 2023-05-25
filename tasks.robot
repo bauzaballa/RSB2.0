@@ -13,16 +13,18 @@ Library    RPA.PDF
 Library    RPA.Archive
 Library    RPA.RobotLogListener
 
+*** Variables ***
+${PREVIEWS_DIR}=    ${OUTPUT_DIR}${/}robot_previews${/}
+${GLOBAL_RETRY_AMOUNT}=    10x
+${GLOBAL_RETRY_INTERVAL}=    1s
 
 *** Tasks ***
 Orders robots from RobotSpareBin Industries Inc
     Open the intranet website
     Download CSV file
     Fill order forms and recollect recipts
+    Close Browser
     Create ZIP with PDF files
-
-***Variables***
-    
 
 *** Keywords ***
 Open the intranet website
@@ -45,7 +47,7 @@ Fill and submit one form
     Input Text    css=.form-control    ${dataTable}[Legs]
     Input Text    address    ${dataTable}[Address]
     Click Button    preview
-    Wait Until Keyword Succeeds    10x    1s    Submit the order And Keep Checking Until Success
+    Wait Until Keyword Succeeds    ${GLOBAL_RETRY_AMOUNT}    ${GLOBAL_RETRY_INTERVAL}    Submit the order And Keep Checking Until Success
     Take a screenshot of the robot    ${dataTable}
     Store the receipt in a PDF file    ${dataTable}
     Store the robot preview in the recipt PDF    ${dataTable}
@@ -62,7 +64,7 @@ Take a screenshot of the robot
     Wait Until Element Is Visible    css=img[alt="Head"]
     Wait Until Element Is Visible    css=img[alt="Body"]
     Wait Until Element Is Visible    css=img[alt="Legs"]
-    ${screenshot}    Screenshot    id:robot-preview-image    ${OUTPUT_DIR}${/}robot_previews${/}${dataTable}[Order number].png
+    ${screenshot}    Screenshot    id:robot-preview-image    ${PREVIEWS_DIR}${dataTable}[Order number].png
 
 Store the receipt in a PDF file
     [Arguments]    ${dataTable}
@@ -73,7 +75,7 @@ Store the receipt in a PDF file
 Store the robot preview in the recipt PDF
     [Arguments]    ${dataTable}
     Open Pdf    ${OUTPUT_DIR}${/}${dataTable}[Order number].pdf
-    Add Watermark Image To Pdf    ${OUTPUT_DIR}${/}robot_previews${/}${dataTable}[Order number].png    ${OUTPUT_DIR}${/}${dataTable}[Order number].pdf
+    Add Watermark Image To Pdf    ${PREVIEWS_DIR}${dataTable}[Order number].png    ${OUTPUT_DIR}${/}${dataTable}[Order number].pdf
     Close Pdf
 
 Create ZIP with PDF files
